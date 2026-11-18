@@ -3,7 +3,6 @@ const Waitlist = lazy(() => import("./Waitlist"));
 
 export type Payload = { business: string; community: boolean; socials: string };
 
-const DOCS_URL = "https://float-finance.docs.buildwithfern.com";
 const X_URL = "https://x.com/float_fi";
 
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -85,8 +84,14 @@ export default function App() {
 
   const toJoin = (e?: { preventDefault(): void }) => {
     e?.preventDefault();
-    document.getElementById("access")?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
-    window.setTimeout(() => firstField.current?.focus({ preventScroll: true }), 600);
+    const smooth = !reduceMotion();
+    // Focusing mid-scroll cancels a smooth scroll in Chrome, so wait for it to finish.
+    // The timeout covers browsers without `scrollend` and the case where no scroll happens.
+    let done = false;
+    const focus = () => { if (!done) { done = true; firstField.current?.focus({ preventScroll: true }); } };
+    if (smooth) window.addEventListener("scrollend", focus, { once: true });
+    window.setTimeout(focus, smooth ? 1500 : 0);
+    document.getElementById("access")?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
   };
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -102,10 +107,7 @@ export default function App() {
       <div className="topbar-inner">
         <a className="brand" href="/" aria-label="Float home"><img src="/logo.svg" alt="Float" /></a>
         <nav className="topbar-nav" aria-label="Primary">
-          <a href="#businesses">Businesses</a>
-          <a href="#providers">Providers</a>
           <a href="#how">How it works</a>
-          <a href={DOCS_URL} target="_blank" rel="noreferrer">Docs</a>
         </nav>
         <a className="btn btn-primary btn-sm topbar-action" href="#access" onClick={toJoin}>Get early access</a>
       </div>
@@ -115,12 +117,10 @@ export default function App() {
       <section className="hero" aria-labelledby="hero-title">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Credit infrastructure on Solana</p>
             <h1 id="hero-title">Credit for the on&#8209;chain economy.</h1>
-            <p className="lede">Businesses use now and pay later. Providers get paid upfront.</p>
+            <p className="lede">Users use now and pay later. Providers get paid upfront.</p>
             <div className="hero-actions">
               <a className="btn btn-primary btn-lg" href="#access" onClick={toJoin}>Get early access</a>
-              <a className="link-arrow" href="#how">How it works <span aria-hidden="true">→</span></a>
             </div>
           </div>
           <div className="hero-visual">
@@ -131,13 +131,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <div className="container backers">
-        <p className="eyebrow">Backed by a Solana Foundation grant</p>
-        <p className="eyebrow">Colosseum Radar</p>
-        <p className="eyebrow">Superteam India</p>
-        <p className="eyebrow">Superteam Malaysia</p>
-      </div>
 
       <section className="section" aria-labelledby="sides-title">
         <div className="container">
@@ -164,7 +157,7 @@ export default function App() {
       <section className="section section-alt" id="how" aria-labelledby="how-title">
         <div className="container">
           <header className="section-head"><div><p className="eyebrow">Process</p><h2 id="how-title">How it works</h2></div>
-            <a className="link-arrow" href={DOCS_URL} target="_blank" rel="noreferrer">API reference <span aria-hidden="true">↗</span></a>
+            <a className="link-arrow" href="#access" onClick={toJoin}>Request API access <span aria-hidden="true">→</span></a>
           </header>
           <ol className="steps">
             {STEPS.map((s, i) => <li key={s.title} className="step">
@@ -175,29 +168,11 @@ export default function App() {
         </div>
       </section>
 
-      <section className="image-band" aria-label="Private beta">
-        <div className="photo"><img src="/images/provider-code.jpg" alt="" /></div>
-        <div className="container image-band-text">
-          <p className="eyebrow">Private beta</p>
-          <p className="image-band-quote">Live with Solami. Settled on Solana.</p>
-        </div>
-      </section>
-
-      <section className="section" id="team" aria-labelledby="team-title">
-        <div className="container">
-          <header className="section-head"><div><p className="eyebrow">Leadership</p><h2 id="team-title">Led by Solana operators.</h2></div></header>
-          <ul className="people">
-            <li><p className="person-name">Samisha</p><p className="eyebrow">Co-founder &amp; CEO</p><p className="muted">GreenKWh, 1st in DePIN at Colosseum Radar. Superteam India.</p><a className="link-arrow" href="https://x.com/samisha_x" target="_blank" rel="noreferrer">@samisha_x <span aria-hidden="true">↗</span></a></li>
-            <li><p className="person-name">Alia</p><p className="eyebrow">Co-founder &amp; CTO</p><p className="muted">Top 5 in Infrastructure at Colosseum Radar. Pudgy Asia. Superteam Malaysia.</p><a className="link-arrow" href="https://x.com/_alialee" target="_blank" rel="noreferrer">@_alialee <span aria-hidden="true">↗</span></a></li>
-          </ul>
-        </div>
-      </section>
-
       <section className="section section-alt" id="access" aria-labelledby="access-title">
         <div className="container access">
-          <div><p className="eyebrow">Early access</p><h2 id="access-title" className="section-title">Get on credit early.</h2><p className="section-sub">We onboard businesses alongside new providers.</p></div>
+          <div><p className="eyebrow">Early access</p><h2 id="access-title" className="section-title">Get on credit early.</h2></div>
           <form className="card access-form" onSubmit={submit}><fieldset disabled={!!payload}>
-            <div className="field"><label htmlFor="business">Your business</label><input ref={firstField} id="business" name="business" required maxLength={160} autoComplete="organization" placeholder="What you do, or plan to do" pattern={".*\\S.*"} /></div>
+            <div className="field"><label htmlFor="business">Your name</label><input ref={firstField} id="business" name="business" required maxLength={160} autoComplete="name" placeholder="First and last name" pattern={".*\\S.*"} /></div>
             <div className="field"><label htmlFor="socials">X or website <span className="optional">optional</span></label><input id="socials" name="socials" maxLength={200} placeholder="@handle or a link" /></div>
             <label className="check"><input type="checkbox" name="community" /><span>Join the Float community</span></label>
             <button className="btn btn-primary btn-lg btn-block" type="submit">Save my place</button>
@@ -210,7 +185,6 @@ export default function App() {
       <div className="container site-footer-inner">
         <img src="/logo.svg" alt="Float" />
         <nav className="footer-links" aria-label="Footer">
-          <a href={DOCS_URL} target="_blank" rel="noreferrer">Docs</a>
           <a href={X_URL} target="_blank" rel="noreferrer">X</a>
         </nav>
         <p>© {new Date().getFullYear()} Float. Credit infrastructure on Solana.</p>
