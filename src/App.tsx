@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Waitlist from "./Waitlist";
+import CommunityPopup from "./CommunityPopup";
 
 export type Role = "user" | "provider";
 export type Payload = { role: Role; business: string; email: string; socials: string; website: string };
@@ -219,6 +220,7 @@ export default function App() {
       </div>
     </footer>
 
+    <CommunityPopup />
     {payload && <Waitlist payload={payload} onClose={(saved) => { if (saved) { form.current?.reset(); setRole("user"); } setPayload(null); }} />}
   </div>;
 }

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaTelegram } from "react-icons/fa";
 import type { Payload } from "./App";
-
-const COMMUNITY_URL = "https://t.me/+MrLn2ia-mfI5MTI1";
+import { COMMUNITY_URL } from "./CommunityPopup";
 
 // The answers are already collected; this saves them and shows the result.
 export default function Waitlist({ payload, onClose }: { payload: Payload; onClose: (saved: boolean) => void }) {
