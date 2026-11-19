@@ -1,8 +1,8 @@
-import { lazy, Suspense, useEffect, useRef, useState, type FormEvent } from "react";
-const Waitlist = lazy(() => import("./Waitlist"));
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import Waitlist from "./Waitlist";
 
 export type Role = "user" | "provider";
-export type Payload = { role: Role; business: string; community: boolean; socials: string };
+export type Payload = { role: Role; business: string; email: string; socials: string; website: string };
 
 
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -97,6 +97,7 @@ export default function App() {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [role, setRole] = useState<Role>("user");
   const firstField = useRef<HTMLInputElement>(null);
+  const form = useRef<HTMLFormElement>(null);
 
   const toJoin = (e?: { preventDefault(): void }) => {
     e?.preventDefault();
@@ -115,7 +116,7 @@ export default function App() {
     const form = event.currentTarget;
     if (!form.reportValidity()) return;
     const data = new FormData(form);
-    setPayload({ role, business: String(data.get("business") ?? ""), community: data.get("community") === "on", socials: String(data.get("socials") ?? "") });
+    setPayload({ role, business: String(data.get("business") ?? ""), email: String(data.get("email") ?? ""), socials: String(data.get("socials") ?? ""), website: String(data.get("website") ?? "") });
   }
 
   return <div className="app">
@@ -189,7 +190,7 @@ export default function App() {
       <section className="section" id="access" aria-labelledby="access-title">
         <div className="container access">
           <div><h2 id="access-title" className="section-title">Get early access.</h2></div>
-          <form className="card access-form" onSubmit={submit}><fieldset disabled={!!payload}>
+          <form ref={form} className="card access-form" onSubmit={submit}><fieldset disabled={!!payload}>
             <fieldset className="field">
               <legend>I'm joining as</legend>
               <div className="roles">
@@ -201,8 +202,10 @@ export default function App() {
               </div>
             </fieldset>
             <div className="field"><label htmlFor="business">Your name</label><input id="business" name="business" required maxLength={160} autoComplete="name" placeholder="First and last name" pattern={".*\\S.*"} /></div>
+            <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" required maxLength={254} autoComplete="email" placeholder="you@example.com" /></div>
             <div className="field"><label htmlFor="socials">X or website <span className="optional">optional</span></label><input id="socials" name="socials" maxLength={200} placeholder="@handle or a link" /></div>
-            <label className="check"><input type="checkbox" name="community" /><span>Join the Float community</span></label>
+            {/* Spam trap: hidden from people, filled in by bots. */}
+            <div className="trap" aria-hidden="true"><label htmlFor="website">Website</label><input id="website" name="website" tabIndex={-1} autoComplete="off" /></div>
             <button className="btn btn-primary btn-lg btn-block" type="submit">Save my place</button>
           </fieldset></form>
         </div>
@@ -216,9 +219,7 @@ export default function App() {
       </div>
     </footer>
 
-    {payload && <Suspense fallback={<p className="auth-status" role="status">Opening secure sign-in…</p>}>
-      <Waitlist payload={payload} onClose={() => setPayload(null)} />
-    </Suspense>}
+    {payload && <Waitlist payload={payload} onClose={(saved) => { if (saved) { form.current?.reset(); setRole("user"); } setPayload(null); }} />}
   </div>;
 }
 

@@ -247,9 +247,12 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   .tile-card { position: static; width: auto; margin: -2.5rem .75rem 0; position: relative; }
 }
 
-/* Waitlist sign-in and dialog */
-.auth-status, .auth-error { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 30; margin: 0; padding: 12px 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-lg); background: var(--bg); font-size: 13px; color: var(--text-2); text-align: center; }
-.auth-error { color: var(--danger); max-width: 320px; }
+/* Waitlist dialog */
+.trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.btn-telegram { background: #229ed9; color: #fff; }
+.btn-telegram:hover { background: #1b8bc2; }
+.btn-telegram svg { width: 1.25rem; height: 1.25rem; }
+.dialog-back { margin-top: 16px; }
 .text-link { display: inline-flex; min-height: 32px; align-items: center; border: 0; background: none; padding: 0; color: var(--text); font-size: .875rem; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
 .cta-link { font-size: 1rem; }
 .waitlist-dialog { position: fixed; inset: 0; margin: auto; width: min(440px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: var(--radius-lg); color: var(--text); background: var(--bg); box-shadow: var(--shadow-md); overflow: auto; text-align: left; }

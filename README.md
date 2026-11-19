@@ -21,19 +21,18 @@ What's here today is the pre-launch page and the waitlist businesses use to regi
 interest:
 
 - a single landing page (React + TypeScript + Vite, deployed on Vercel)
-- a waitlist behind Privy sign-in, backed by a private Supabase Postgres table
+- a waitlist form that saves to a private Supabase Postgres table
 
 ## Local preview
 
 ```bash
 npm install
-cp .env.example .env.local   # then set VITE_PRIVY_APP_ID
+cp .env.example .env.local   # then set DATABASE_URL to save submissions locally
 npm run dev
 ```
 
-The page and real Privy login work under Vite. The `/api/waitlist` endpoint needs the Vercel
-runtime (`npx vercel dev`) plus the server variables below — **under plain `npm run dev`,
-submissions are not saved.**
+Under `npm run dev`, Vite serves `/api/waitlist` with the same handler Vercel runs. Without
+`DATABASE_URL` the form shows an error instead of saving.
 
 ```bash
 npm test        # waitlist handler tests
@@ -45,14 +44,11 @@ npm run build   # production build
 1. In Supabase, run the `db/` migrations once, in order, in the SQL editor. Take the
    connection string from Project Settings → Database → Connection string → **Transaction
    pooler**, and use it as `DATABASE_URL`.
-2. Set `DATABASE_URL`, `PRIVY_APP_ID` and `PRIVY_APP_SECRET` as **server-only** Vercel
-   environment variables, and `VITE_PRIVY_APP_ID` to the same Privy app ID. Never commit
-   secrets, and never prefix a server credential with `VITE_`.
-3. Enable email and Google login in Privy, and allow the local, preview and production
-   origins.
-4. On the preview deployment, sign in with a test account and confirm one row in
-   `waitlist_entries`. Sign in again to confirm the retry neither duplicates nor overwrites
-   it. Delete only that known test row afterwards.
+2. Set `DATABASE_URL` as a **server-only** Vercel environment variable. Never commit it, and
+   never prefix it with `VITE_`.
+3. On the preview deployment, submit the form with a test email and confirm one row in
+   `waitlist_entries`. Submit again to confirm the retry neither duplicates nor overwrites it.
+   Delete only that known test row afterwards.
 
 Rolling back means rolling the frontend and API back together to the previous Vercel
 deployment. The `waitlist_entries` table is additive — leave it and its captured entries in
@@ -60,12 +56,14 @@ place.
 
 ## How the waitlist handles data
 
-Signing in *is* the signup — there is no form. The endpoint verifies the token's signature,
-issuer, audience, expiry and `did:privy:` subject, then reads the contact email **from
-Privy's API rather than from the request**, so a forged email or ID in the body is ignored.
-Signing in verifies the identity; a short form then collects the business, whether they want
-to be part of a credit-reputation community, and optionally their socials. The endpoint
-stores the Privy ID, verified email, those three answers, a timestamp and a consent version.
+The form asks whether someone is joining as a user or a provider, their name (stored in the
+`business` column), their email and, optionally, their X handle or website. The endpoint
+validates each field, lowercases the email and stores one row per email; repeat submissions
+are ignored rather than overwriting the first. After saving, the success dialog links to the
+Float community on Telegram.
+
+Emails are not verified. A hidden spam-trap field catches simple bots: if it is filled in, the
+endpoint replies with success and saves nothing.
 
 Supabase serves the `public` schema over PostgREST using a browser-safe anon key, so the
 table is closed off explicitly: `db/003_signup_fields.sql` enables row-level security with no
@@ -73,16 +71,16 @@ policies and revokes `anon` and `authenticated`. Only the owning role this API c
 can reach the rows. Verify this after running the migrations — an exposed table would leak
 every signup email.
 
-The unused `name` column from the original form is left in place and nullable rather than
-dropped, so anything captured earlier survives.
+Rows saved under the earlier Privy sign-in keep their `privy_id`, and the unused `name` and
+`community_interest` columns are left in place, so nothing captured earlier is lost.
 
 The table has no public read endpoint and the browser never receives database credentials.
-Repeat submissions are idempotent by Privy ID. Any failure in configuration, identity lookup
-or persistence returns an error — a completed login alone never counts as a saved entry.
+Any failure in configuration or persistence returns an error — the form never reports a
+saved place that wasn't saved.
 
-Logs carry a request ID and an event code only, never contact data or tokens. Watch
-`waitlist.save_failed` and `waitlist.auth_unavailable` in Vercel logs; if signup breaks,
-check the environment variables and that the migration has run.
+Logs carry a request ID and an event code only, never contact data. Watch
+`waitlist.save_failed` in Vercel logs; if signup breaks, check `DATABASE_URL` and that the
+migrations have run.
 
 ## Docs (`/docs`)
 

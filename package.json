@@ -10,11 +10,9 @@
   },
   "dependencies": {
     "@mdx-js/rollup": "^3.1.1",
-    "@privy-io/react-auth": "^3.40.0",
     "@shikijs/rehype": "^4.5.0",
     "estree-util-value-to-estree": "^3.5.0",
     "github-slugger": "^2.0.0",
-    "jose": "^6.2.12",
     "lucide-react": "^1.52.0",
     "mdast-util-to-string": "^4.0.0",
     "mermaid": "^12.1.0",
