@@ -3,5 +3,12 @@
   "framework": "vite",
   "installCommand": "npm install",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/credit", "destination": "/credit-check", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/credit-check", "destination": "https://credit-production-7d2a3d98.up.railway.app/credit-check" },
+    { "source": "/credit-check/:path*", "destination": "https://credit-production-7d2a3d98.up.railway.app/credit-check/:path*" }
+  ]
 }
