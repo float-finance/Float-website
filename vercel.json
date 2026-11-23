@@ -5,7 +5,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "redirects": [
-    { "source": "/credit", "destination": "/credit-check", "permanent": false }
+    { "source": "/credit", "destination": "/credit-check", "permanent": false },
+    { "source": "/credit-check/", "destination": "/credit-check", "permanent": false }
   ],
   "rewrites": [
     { "source": "/credit-check", "destination": "https://credit-production-7d2a3d98.up.railway.app/credit-check" },
